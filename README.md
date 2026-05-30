@@ -47,3 +47,4 @@ Run the crawler:
 - Function: brightedge-url-crawler
 - Runtime: Python 3.14
 - Successfully tested with CNN URL
+- API Endpoint: https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler
