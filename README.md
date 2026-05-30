@@ -42,3 +42,8 @@ Run the crawler:
 - Anti-bot protection: Added User-Agent headers
 - Timeouts: Added timeout parameter and try/except
 - Scale: Designed AWS distributed architecture
+## AWS Deployment
+- Deployed on AWS Lambda (us-east-2)
+- Function: brightedge-url-crawler
+- Runtime: Python 3.14
+- Successfully tested with CNN URL
