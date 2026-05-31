@@ -18,11 +18,10 @@ A URL crawler that fetches any webpage, extracts metadata (title, description, b
 GET https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler?url=YOUR_URL
 ```
 
-**Example:**
-
-```
-GET https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler?url=https://www.cnn.com
-```
+**Click to test live:**
+- [Test with CNN](https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler?url=https://www.cnn.com)
+- [Test with Amazon](https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler?url=https://www.amazon.com)
+- [Test with Example.com](https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-url-crawler?url=https://example.com)
 
 ---
 
@@ -74,23 +73,7 @@ GET https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-ur
 
 ## Architecture Flow
 
-```
-User Request (URL)
-       ↓
-API Gateway (HTTP GET)
-       ↓
-AWS Lambda (Python)
-       ↓
-urllib.request → Fetch HTML
-       ↓
-MetadataParser (HTMLParser)
-       ↓
-Extract: title, description, body_preview
-       ↓
-classify_topics() — keyword-based matching
-       ↓
-JSON Response
-```
+User Request (URL) → API Gateway (HTTP GET) → AWS Lambda (Python) → urllib.request (Fetch HTML) → MetadataParser (HTMLParser) → Extract Metadata → classify_topics() → JSON Response
 
 ---
 
