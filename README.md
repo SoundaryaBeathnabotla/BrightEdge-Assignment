@@ -6,7 +6,7 @@
 
 ## Overview
 
-A URL crawler that fetches any webpage, extracts metadata (title, description, body preview), and classifies topics automatically. Built in Python and deployed on AWS Lambda with a live API endpoint.
+A URL crawler that fetches any webpage, extracts metadata (title, description, body preview), and classifies topics automatically using real SEO signals. Built in Python and deployed on AWS Lambda with a live API endpoint.
 
 ---
 
@@ -36,8 +36,12 @@ GET https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-ur
   "description": "View the latest news and breaking news today for U.S., world, weather, entertainment, politics and health at CNN.com.",
   "body_preview": "CNN values your feedback...",
   "topics": [
-    "technology",
-    "news"
+    "breaking news",
+    "cnn news",
+    "current events",
+    "daily news",
+    "travel",
+    "website"
   ],
   "status": "success"
 }
@@ -73,22 +77,23 @@ GET https://femqsni8gc.execute-api.us-east-2.amazonaws.com/default/brightedge-ur
 
 ## Architecture Flow
 
-User Request (URL) → API Gateway (HTTP GET) → AWS Lambda (Python) → urllib.request (Fetch HTML) → MetadataParser (HTMLParser) → Extract Metadata → classify_topics() → JSON Response
+User Request (URL) → API Gateway (HTTP GET) → AWS Lambda (Python) → urllib.request (Fetch HTML) → MetadataParser (HTMLParser) → Extract Metadata + SEO Signals → extract_topics() → JSON Response
 
 ---
 
 ## Topic Classification
 
-Topics are classified using **keyword-based matching** across title, description, and body text.
+Topics are extracted from the page's own SEO signals — no hardcoded categories:
 
-| Topic | Sample Keywords |
-|------------|-------------------------------|
-| technology | ai, tech, software, computer |
-| shopping | buy, price, product, amazon |
-| outdoors | camp, hiking, outdoor, trail |
-| news | breaking, report, cnn, today |
+| Signal | Example Output |
+|---|---|
+| `meta keywords` | Topics the site owner defined |
+| `og:type` | "article", "product", "website" |
+| `og:section` | "Technology", "Sports", "Health" |
+| H1/H2/H3 headings | Actual page topic headings |
+| schema.org itemtype | "NewsArticle", "Product", "Person" |
 
-> **Note:** This is intentionally simple for the POC. In production, this can be replaced with an ML model (e.g. zero-shot classification using HuggingFace transformers) for higher accuracy.
+This means any page — mortgages, vaccines, tax law — returns meaningful topics without any hardcoded categories. Scales to billions of URLs across any domain.
 
 ---
 
@@ -97,7 +102,7 @@ Topics are classified using **keyword-based matching** across title, description
 See `design.md` for the full architecture. Key assumptions:
 
 | Assumption | Value |
-|------------------------|------------------------|
+|---|---|
 | Target URL volume | 1 billion+ URLs |
 | Crawl throughput | ~10,000 URLs/second |
 | Storage per URL | ~2 KB metadata |
@@ -112,7 +117,7 @@ See `design.md` for the full architecture. Key assumptions:
 ## Files
 
 | File | Description |
-|--------------|--------------------------------------|
+|---|---|
 | `crawler.py` | Core crawler logic (Part 1) |
 | `design.md` | Distributed system design (Part 2) |
 | `poc_plan.md` | POC phases, estimates, release plan (Part 3) |
@@ -122,9 +127,10 @@ See `design.md` for the full architecture. Key assumptions:
 ## How to Run Locally
 
 ```bash
-pip install requests beautifulsoup4
 python crawler.py
 ```
+
+No dependencies required — uses Python standard library only.
 
 ---
 
@@ -141,8 +147,8 @@ python crawler.py
 ## Known Limitations
 
 - Some sites (REI, LinkedIn) block AWS Lambda IPs via Cloudflare — handled gracefully with error response
-- `body_preview` limited to 300 characters to stay within Lambda response limits
-- Topic classification is keyword-based (not semantic)
+- `body_preview` limited to 300 characters
+- Sites without og: tags or meta keywords fall back to heading-based classification
 
 ---
 
