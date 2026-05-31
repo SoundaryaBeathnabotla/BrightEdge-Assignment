@@ -152,3 +152,40 @@ Tools: AWS CloudWatch, CloudWatch Alarms, AWS X-Ray for tracing
 - Claude AI: System architecture design, cost optimization strategies
 - GitHub Copilot: Code suggestions during crawler development
 - All design decisions reviewed and validated personally
+
+---
+
+## 12. Throughput & Cost Analysis
+
+### Target: 1 Billion URLs
+
+**Step 1 — Required throughput:**
+- 1,000,000,000 URLs ÷ 86,400 seconds/day = ~11,574 URLs/sec to finish in 1 day
+- Rounded target: ~10,000 URLs/sec sustained
+
+**Step 2 — Worker count:**
+- Average HTTP fetch latency: 1–3 seconds per URL
+- To sustain 10,000 req/sec with 2s avg latency → 20,000 concurrent workers needed
+- Lambda default concurrency limit: 1,000 per region
+- Solution: Request AWS limit increase to 20,000 (standard enterprise request) OR distribute across 2–3 AWS regions (us-east-1, us-west-2, eu-west-1) → ~7,000 workers per region, within limits
+
+**Step 3 — Per-domain rate limiting:**
+- Hammering a single domain at 10,000 req/sec triggers IP bans (as seen with REI/Cloudflare)
+- Solution: SQS FIFO queues per domain with max 1–5 req/sec per domain
+- Total concurrency stays high, but spread across millions of unique domains
+
+**Step 4 — Cost estimate (monthly):**
+
+| Resource | Usage | Est. Cost/month |
+|---|---|---|
+| Lambda | 1B invocations × 2s × 128MB | ~$2,000 |
+| SQS | 1B messages | ~$400 |
+| S3 | 2TB storage + PUT requests | ~$150 |
+| DynamoDB | 1B writes (dedup table) | ~$1,250 |
+| Athena | 10TB scanned/month | ~$50 |
+| **Total** | | **~$3,850/month** |
+
+**Step 5 — Optimization levers:**
+- Use Spot-based ECS Fargate instead of Lambda for sustained crawls → 60–70% cost reduction
+- Parquet + S3 instead of raw HTML → 10x storage reduction
+- DynamoDB TTL to expire old URLs and control table size
